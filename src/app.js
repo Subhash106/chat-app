@@ -13,6 +13,15 @@ const app = express();
 // set up view engine and handlebar
 app.set("view engine", "hbs");
 app.set("views", templatePath);
+
+//custom middleware
+//app.use(authMiddleware);
+// app.use((req, res, next) => {
+//   console.log(req.method, req.path);
+
+//   next();
+// });
+
 //use static assets
 app.use(express.static(publicDir));
 app.use(express.json());
