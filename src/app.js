@@ -1,14 +1,20 @@
 require("./db/mongoose");
-const path = require("path");
-const express = require("express");
 const taskRoutes = require("./routers/task");
 const userRoutes = require("./routers/user");
+const { generateMessage } = require("./utils");
+
+const path = require("path");
+const http = require("http");
+
+const express = require("express");
+const { Server } = require("socket.io");
 
 const port = process.env.PORT || 3001;
-
 const templatePath = path.join(__dirname, "../templates");
 const publicDir = path.join(__dirname, "../public");
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
 
 // set up view engine and handlebar
 app.set("view engine", "hbs");
@@ -26,13 +32,13 @@ app.set("views", templatePath);
 app.use(express.static(publicDir));
 app.use(express.json());
 
-// app.get("/", (req, res) => {
-//   res.render("index", {
-//     title: "Page from express and hbs template",
-//     firstName: "Subash",
-//     lastName: "Chandra",
-//   });
-// });
+app.get("/", (req, res) => {
+  res.render("index", {
+    title: "Page from express and hbs template",
+    firstName: "Subash",
+    lastName: "Chandra",
+  });
+});
 
 // app.get("/user", (req, res) => {
 //   res.json({ firstName: "Subash", lastName: "Chandra", age: 32 });
@@ -57,6 +63,31 @@ app.get("*", (req, res) => {
   res.send("404 | Not found!");
 });
 
-app.listen(port, () => {
+io.on("connection", (socket) => {
+  socket.emit("message", generateMessage("Welcome"));
+  socket.broadcast.emit("joining", "Someone has joined the chat");
+
+  socket.on("sendMessage", function (message, callback) {
+    io.emit("message", generateMessage(message));
+
+    if (typeof callback === "function") {
+      callback();
+    }
+  });
+
+  socket.on("sendLocation", function (location, callback) {
+    console.log("location", location);
+    socket.broadcast.emit("messageLocation", location);
+    if (typeof callback === "function") {
+      callback();
+    }
+  });
+
+  socket.on("disconnect", () => {
+    io.emit("leaving", "x is leaving the chat");
+  });
+});
+
+server.listen(port, () => {
   console.log(`App is running on port number ${port}`);
 });
