@@ -14,8 +14,6 @@ const params = new URLSearchParams(location.search);
 const username = params.get("username");
 const room = params.get("room");
 
-console.log("room", room, username);
-
 socket.on("message", (data) => {
   const { createdAt } = data;
   const updatedCreatedAt = moment(createdAt).format("h:mm a");
@@ -83,3 +81,5 @@ $sendLocationButton.addEventListener("click", function () {
     }
   );
 });
+
+socket.emit("join", { username, room });

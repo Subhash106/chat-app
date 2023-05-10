@@ -64,8 +64,13 @@ app.get("*", (req, res) => {
 });
 
 io.on("connection", (socket) => {
-  socket.emit("message", generateMessage("Welcome"));
-  socket.broadcast.emit("joining", "Someone has joined the chat");
+  socket.on("join", ({ username, room }) => {
+    socket.join(room);
+    socket.emit("message", generateMessage(`Welcome, ${username}`));
+    socket.broadcast
+      .to(room)
+      .emit("message", generateMessage(`${username} has joined the chat`));
+  });
 
   socket.on("sendMessage", function (message, callback) {
     io.emit("message", generateMessage(message));
@@ -83,7 +88,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    io.emit("leaving", "x is leaving the chat");
+    io.emit("message", generateMessage("x is leaving the chat"));
   });
 });
 
