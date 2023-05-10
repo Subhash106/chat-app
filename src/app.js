@@ -76,8 +76,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("sendLocation", function (location, callback) {
-    console.log("location", location);
-    socket.broadcast.emit("messageLocation", location);
+    socket.broadcast.emit("messageLocation", generateMessage(location));
     if (typeof callback === "function") {
       callback();
     }

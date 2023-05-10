@@ -6,20 +6,40 @@ const $sendButton = $chatForm.querySelector("button");
 const $messages = document.getElementById("messages");
 const $messagesTemplate =
   document.getElementById("messages-template").innerHTML;
+const $messagesLocationTemplate = document.getElementById(
+  "messages-location-template"
+).innerHTML;
 const $sendLocationButton = document.getElementById("sendLocation");
+const params = new URLSearchParams(location.search);
+const username = params.get("username");
+const room = params.get("room");
+
+console.log("room", room, username);
 
 socket.on("message", (data) => {
-  const html = Mustache.render($messagesTemplate, data);
+  const { createdAt } = data;
+  const updatedCreatedAt = moment(createdAt).format("h:mm a");
+  const html = Mustache.render($messagesTemplate, {
+    ...data,
+    createdAt: updatedCreatedAt,
+  });
   $messages.insertAdjacentHTML("beforeend", html);
 });
 
-socket.on("messageLocation", (location) => {
-  const link = document.createElement("a");
-  link.href = `https://www.google.com/maps/@${location.latitude},${location.longitude},7z`;
-  link.innerText = "Location";
-  link.target = "_blank";
+socket.on("messageLocation", (data) => {
+  const {
+    createdAt,
+    text: { latitude, longitude },
+  } = data;
 
-  $messages.insertAdjacentElement("beforeend", link);
+  const updatedCreatedAt = moment(createdAt).format("h:mm a");
+
+  const html = Mustache.render($messagesLocationTemplate, {
+    url: `https://www.google.com/maps/@${latitude},${longitude},7z`,
+    createdAt: updatedCreatedAt,
+  });
+
+  $messages.insertAdjacentHTML("beforeend", html);
 });
 
 $chatForm.addEventListener("submit", function (e) {
