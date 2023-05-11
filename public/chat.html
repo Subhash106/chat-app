@@ -8,34 +8,54 @@
     <link rel="stylesheet" href="/css/styles.css" />
   </head>
   <body>
-    <h1>My Chat app</h1>
-    <p id="welcome"></p>
-    <div id="joining"></div>
-    <div id="messages"></div>
-    <div class="chat__form__container">
-      <form id="chatForm">
-        <input type="text" placeholder="Type something" id="chatInput" />
-        <button>Send</button>
-      </form>
-      <button id="sendLocation">Send Location</button>
+    <div class="chat__container">
+      <aside id="aside"></aside>
+      <main id="main">
+        <header class="header">
+          <h1>My Chat app</h1>
+        </header>
+        <div id="messages"></div>
+        <div class="chat__form__container">
+          <form id="chatForm">
+            <input type="text" placeholder="Type something" id="chatInput" />
+            <button>Send</button>
+          </form>
+          <button id="sendLocation">Send Location</button>
+        </div>
+      </main>
     </div>
 
     <script id="messages-template" type="text/html">
-      <div>
-        <div class="message">
-          <span class="message__text">{{text}}</span
-          ><span class="message__time">{{createdAt}}</span>
+      <div class="message">
+        <span class="message__user">{{username}}</span>
+        <div>
+          <span class="message__text">{{text}}</span>
+          <span class="message__time">{{createdAt}}</span>
         </div>
       </div>
     </script>
 
     <script id="messages-location-template" type="text/html">
-      <div>
-        <div class="message">
-          <span class="message__text"
-            ><a href="{{url}}" target="_blank">Location</a></span
-          ><span class="message__time">{{createdAt}}</span>
+      <div class="message">
+        <span class="message__user">{{username}}</span>
+        <div>
+          <span class="message__text">
+            <a href="{{url}}" target="_blank">Location</a>
+          </span>
+          <span class="message__time">{{createdAt}}</span>
         </div>
+      </div>
+    </script>
+
+    <script id="users-template" type="text/html">
+      <div>
+        <h2>{{ room }}</h2>
+        <h3>Users</h3>
+        <ul class="users__list">
+          {{#users}}
+          <li>{{username}}</li>
+          {{/users}}
+        </ul>
       </div>
     </script>
 

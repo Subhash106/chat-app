@@ -1,8 +1,9 @@
 *,
-*a::after,
+*::after,
 *::before {
   padding: 0;
   margin: 0;
+  box-sizing: inherit;
 }
 
 html {
@@ -38,12 +39,20 @@ body {
   flex-direction: column;
   padding: 8px;
   border-radius: 4px;
+  box-shadow: 0 1px 1rem rgba(0, 0, 0, 0.1);
+}
+
+.message:not(:last-child) {
   margin-bottom: 1rem;
-  box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.15);
 }
 
 .message__text {
   font-size: 16px;
+}
+
+.message__user {
+  font-size: 16px;
+  font-weight: bold;
 }
 
 .message__time {
@@ -54,4 +63,50 @@ body {
 .chat__form__container {
   display: flex;
   justify-content: space-between;
+  position: sticky;
+  bottom: 0;
+  padding: 1rem;
+  background-color: #eee;
+}
+
+.chat__container {
+  display: flex;
+}
+
+#main {
+  background-color: #fff;
+  flex: 1;
+  height: 100vh;
+}
+
+#aside {
+  padding: 1rem;
+  background-color: #ddd;
+  flex: 0 0 400px;
+  height: 100vh;
+}
+
+#messages {
+  overflow-y: scroll;
+  height: calc(100vh - 136px);
+  margin: 8px;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  padding: 1rem 0;
+  background: #eee;
+}
+
+.users__list {
+  list-style: none;
+}
+
+.users__list li {
+  padding: 1rem 0;
+}
+
+.users__list li:not(:last-child) {
+  margin-bottom: 1rem;
 }

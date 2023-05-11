@@ -1,7 +1,13 @@
 require("./db/mongoose");
 const taskRoutes = require("./routers/task");
 const userRoutes = require("./routers/user");
-const { generateMessage } = require("./utils");
+const { generateMessage } = require("./utils/utils");
+const {
+  addUser,
+  removeUser,
+  getUser,
+  getUsersInRoom,
+} = require("./utils/user");
 
 const path = require("path");
 const http = require("http");
@@ -40,19 +46,6 @@ app.get("/", (req, res) => {
   });
 });
 
-// app.get("/user", (req, res) => {
-//   res.json({ firstName: "Subash", lastName: "Chandra", age: 32 });
-// });
-
-// app.get("/set-cookie", (req, res) => {
-//   res.setHeader("Set-Cookie", "name=value; HttpOnly=true; Secure");
-//   res.send({ firstName: "Subash", age: 32 });
-// });
-
-// app.get("/posts/*", (req, res) => {
-//   res.send("404 | Post Not found!");
-// });
-
 //Task routes
 app.use(taskRoutes);
 //User routes
@@ -64,16 +57,33 @@ app.get("*", (req, res) => {
 });
 
 io.on("connection", (socket) => {
-  socket.on("join", ({ username, room }) => {
-    socket.join(room);
-    socket.emit("message", generateMessage(`Welcome, ${username}`));
+  socket.on("join", ({ username, room }, cb) => {
+    const { user, error } = addUser({ id: socket.id, username, room });
+
+    if (error) {
+      return cb(error);
+    }
+
+    socket.join(user.room);
+    socket.emit(
+      "message",
+      generateMessage(user.username, `Welcome, ${user.username}`)
+    );
     socket.broadcast
-      .to(room)
-      .emit("message", generateMessage(`${username} has joined the chat`));
+      .to(user.room)
+      .emit(
+        "message",
+        generateMessage(user.username, `${user.username} has joined the chat`)
+      );
+    io.to(user.room).emit("userData", {
+      room: user.room,
+      users: getUsersInRoom(user.room),
+    });
   });
 
   socket.on("sendMessage", function (message, callback) {
-    io.emit("message", generateMessage(message));
+    const { room, username } = getUser(socket.id);
+    io.to(room).emit("message", generateMessage(username, message));
 
     if (typeof callback === "function") {
       callback();
@@ -81,14 +91,28 @@ io.on("connection", (socket) => {
   });
 
   socket.on("sendLocation", function (location, callback) {
-    socket.broadcast.emit("messageLocation", generateMessage(location));
+    const { room, username } = getUser(socket.id);
+
+    socket
+      .to(room)
+      .emit("messageLocation", generateMessage(username, location));
+
     if (typeof callback === "function") {
       callback();
     }
   });
 
   socket.on("disconnect", () => {
-    io.emit("message", generateMessage("x is leaving the chat"));
+    const user = removeUser(socket.id) || {};
+    io.to(user.room).emit(
+      "message",
+      generateMessage(`${user.username} has left the chat`)
+    );
+
+    io.to(user.room).emit("userData", {
+      room: user.room,
+      users: getUsersInRoom(user.room),
+    });
   });
 });
 

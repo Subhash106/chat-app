@@ -9,6 +9,8 @@ const $messagesTemplate =
 const $messagesLocationTemplate = document.getElementById(
   "messages-location-template"
 ).innerHTML;
+const $asideTemplate = document.getElementById("users-template").innerHTML;
+const $aside = document.getElementById("aside");
 const $sendLocationButton = document.getElementById("sendLocation");
 const params = new URLSearchParams(location.search);
 const username = params.get("username");
@@ -22,10 +24,16 @@ socket.on("message", (data) => {
     createdAt: updatedCreatedAt,
   });
   $messages.insertAdjacentHTML("beforeend", html);
+
+  $messages.lastElementChild.scrollIntoView({
+    behavior: "smooth",
+    block: "end",
+  });
 });
 
 socket.on("messageLocation", (data) => {
   const {
+    username,
     createdAt,
     text: { latitude, longitude },
   } = data;
@@ -33,11 +41,17 @@ socket.on("messageLocation", (data) => {
   const updatedCreatedAt = moment(createdAt).format("h:mm a");
 
   const html = Mustache.render($messagesLocationTemplate, {
+    username,
     url: `https://www.google.com/maps/@${latitude},${longitude},7z`,
     createdAt: updatedCreatedAt,
   });
 
   $messages.insertAdjacentHTML("beforeend", html);
+});
+
+socket.on("userData", ({ room, users }) => {
+  const html = Mustache.render($asideTemplate, { room, users });
+  $aside.innerHTML = html;
 });
 
 $chatForm.addEventListener("submit", function (e) {
@@ -82,4 +96,7 @@ $sendLocationButton.addEventListener("click", function () {
   );
 });
 
-socket.emit("join", { username, room });
+socket.emit("join", { username, room }, (error) => {
+  alert(error);
+  location.href = "/";
+});
